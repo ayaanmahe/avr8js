@@ -1,0 +1,17 @@
+{
+  "name": "avr8js-api",
+  "version": "2.0.0",
+  "description": "AVR8js REST API — simulate Arduino with LEDs, Servo, Stepper, OLED, NeoPixels, Buttons",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "avr8js": "^0.20.1",
+    "express": "^4.18.2"
+  }
+}
