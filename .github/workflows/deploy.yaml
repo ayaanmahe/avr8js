@@ -24,10 +24,39 @@ jobs:
 
       - name: Validate server starts
         run: |
-          timeout 5 node server.js &
-          sleep 3
-          curl -f http://localhost:3000/health || exit 1
-          kill %1 || true
+          # Start server in background, capture its PID
+          node server.js &
+          SERVER_PID=$!
+
+          # Wait up to 15 seconds for the server to be ready
+          echo "Waiting for server..."
+          for i in $(seq 1 15); do
+            if curl -sf http://localhost:3000/health > /dev/null 2>&1; then
+              echo "✅ Server is up on attempt $i"
+              break
+            fi
+            if ! kill -0 $SERVER_PID 2>/dev/null; then
+              echo "❌ Server process died. Showing npm/node errors:"
+              exit 1
+            fi
+            echo "  attempt $i — not ready yet, waiting 1s..."
+            sleep 1
+          done
+
+          # Final health check with visible output
+          echo "Running health check..."
+          curl -f http://localhost:3000/health
+          CURL_EXIT=$?
+
+          # Clean up
+          kill $SERVER_PID 2>/dev/null || true
+
+          if [ $CURL_EXIT -ne 0 ]; then
+            echo "❌ Health check failed"
+            exit 1
+          fi
+
+          echo "✅ Health check passed"
 
       - name: Trigger Render Deploy
         if: success()
